@@ -46,6 +46,10 @@ UKF::UKF() {
   // Radar measurement noise standard deviation radius change in m/s
   std_radrd_ = 0.3;
   //DO NOT MODIFY measurement noise values above these are provided by the sensor manufacturer.
+
+  is_initialized_ = false;
+
+  time_us_ = 0.0;
   
   /**
   TODO:
@@ -69,6 +73,69 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   Complete this function! Make sure you switch between lidar and radar
   measurements.
   */
+
+  if (!is_initialized_)
+  {
+    x_ = VectorXd(5);
+    x_.fill(0.0);
+
+    float px = 0.0;
+    float py = 0.0;
+    float vx = 0.0;
+    float vy = 0.0;
+
+    if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
+    {
+      /**
+      Convert radar from polar to cartesian coordinates and initialize state.
+      */
+
+      float rho = meas_package.raw_measurements_[0];
+      float phi = meas_package.raw_measurements_[1];
+      float rho_dot = meas_package.raw_measurements_[2];
+      px = rho * cos(phi);
+      py = rho * sin(phi);
+      vx = rho_dot * cos(phi);
+      vy = rho_dot * sin(phi);
+    }
+    else if (meas_package.sensor_type_ == MeasurementPackage::LASER)
+    {
+      px = meas_package.raw_measurements_[0];
+      py = meas_package.raw_measurements_[1];
+    }
+
+    x_[0] = px;
+    x_[1] = py;
+    x_[2] = sqrt(vx*vx + vy*vy);
+    x_[3] = 0; // atan2(vy,vx);
+    x_[4] = 0;
+
+    time_us_ = meas_package.timestamp_;
+
+    // Initialisation done
+    is_initialized_ = true;
+    return;
+  }
+
+  float dt = (meas_package.timestamp_ - time_us_) / 1000000.0;
+  time_us_ = meas_package.timestamp_;
+  Prediction(dt);
+
+  if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
+  {
+    // Radar updates
+    UpdateRadar(meas_package);
+  }
+  else
+  {
+    // Lidar updates
+    UpdateLidar(meas_package);
+  }
+
+  // Print the output
+  cout << "x_ = " << x_ << endl;
+  cout << "P_ = " << P_ << endl;
+
 }
 
 /**
