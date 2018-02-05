@@ -11,6 +11,17 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
 class UKF {
+private:
+    MatrixXd GenerateSigmaPoints();
+
+    MatrixXd PredictSigmaPoints(double delta_t, MatrixXd Xsig_aug);
+
+    void PredictMeanAndCovariance(MatrixXd Xsig_pred);
+
+    void PredictMeasurement();
+
+    void UpdateState();
+
 public:
 
   ///* initially set to false, set to true in first call of ProcessMeasurement
@@ -27,9 +38,6 @@ public:
 
   ///* state covariance matrix
   MatrixXd P_;
-
-  ///* predicted sigma points matrix
-  MatrixXd Xsig_pred_;
 
   ///* time when the state is true, in us
   long long time_us_;
@@ -67,7 +75,6 @@ public:
   ///* Sigma point spreading parameter
   double lambda_;
 
-
   /**
    * Constructor
    */
@@ -89,19 +96,20 @@ public:
    * matrix
    * @param delta_t Time between k and k+1 in s
    */
-  void Prediction(double delta_t);
+  MatrixXd Prediction(double delta_t);
 
   /**
    * Updates the state and the state covariance matrix using a laser measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateLidar(MeasurementPackage meas_package);
+  void UpdateLidar(MeasurementPackage meas_package, MatrixXd Xsig_pred);
 
   /**
    * Updates the state and the state covariance matrix using a radar measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateRadar(MeasurementPackage meas_package);
+  void UpdateRadar(MeasurementPackage meas_package, MatrixXd Xsig_pred);
+
 };
 
 #endif /* UKF_H */
