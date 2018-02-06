@@ -18,9 +18,7 @@ private:
 
     void PredictMeanAndCovariance(MatrixXd Xsig_pred);
 
-    void PredictMeasurement();
-
-    void UpdateState();
+    double UpdateState(MeasurementPackage meas_package, MatrixXd Xsig_pred, MatrixXd Zsig, VectorXd z_pred, MatrixXd S);
 
 public:
 
@@ -74,6 +72,10 @@ public:
 
   ///* Sigma point spreading parameter
   double lambda_;
+
+  double nis_radar;
+
+  double nis_lidar;
 
   /**
    * Constructor
